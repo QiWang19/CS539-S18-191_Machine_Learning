@@ -24,8 +24,8 @@ def linear_kernel(X1, X2):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
-
+    K = X1 * X2.T
+    np.mat(K)
     #########################################
     return K 
 
@@ -45,8 +45,8 @@ def polynomial_kernel(X1, X2,d=2):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
-
+    K = np.power(1 + X1 * X2.T, d)
+    np.mat(K)
     #########################################
     return K 
 
@@ -66,11 +66,16 @@ def gaussian_kernel(X1, X2,gamma=1.):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
+    X= X1
+    Y = X2
+    K = np.zeros((X.shape[0], Y.shape[0]))
+    for i, x in enumerate(X):
+        for j, y in enumerate(Y):
+            K[i, j] = np.exp(-1.0 * (np.linalg.norm(x - y)**2) / (2 * (gamma**2) ) )
+            #K[i, j] = np.exp(-1.0* gamma * (np.linalg.norm(x - y) ** 2) )
+    #return K
 
-
-
-
-
+    K = np.matrix(K)
 
 
 
@@ -95,12 +100,15 @@ def predict(K, a, y, b):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    
-
-
-
-
-
+    y_test = []
+    (n_test, n_train) = K.shape
+    for i in range(0, n_test):
+        value = np.mat(K[i]) * np.multiply(a,y)   + b
+        if value > 0:
+            y_test.append(1)
+        else:
+            y_test.append(-1)
+    y_test = np.mat(y_test).T
     #########################################
     return y_test
 
@@ -120,10 +128,10 @@ def compute_HL(ai,yi,aj,yj,C):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
-
-
-
+    if yi == yj:
+        L, H = max(0, ai + aj - C), min(C,ai + aj)
+    else:
+        L, H = max(0, ai - aj), min(C, ai - aj + C)
 
     #########################################
     return H, L 
@@ -145,8 +153,8 @@ def compute_E(Ki,a,y,b,i):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
-
+    #E = float(1.0 * a[i] * y[i] * (Ki * np.multiply(a,y)) + b - y[i])
+    E = float(1.0  * (Ki * np.multiply(a, y)) + b - y[i])
 
 
 
@@ -167,7 +175,7 @@ def compute_eta(Kii,Kjj,Kij):
     #########################################
     ## INSERT YOUR CODE HERE
 
-
+    eta = float(2.0*Kij - Kii - Kjj )
 
 
 
@@ -192,12 +200,22 @@ def update_ai(Ei,Ej,eta,ai,yi,H,L):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
+    if eta != 0:
+        ai_star = float(ai - yi * (Ej - Ei) / eta)
+    if eta == 0:
+        ai_new = float(ai)
+        return ai_new
+    elif ai_star > H:
+        ai_new = float(H)
+
+    elif ai_star < L:
+        ai_new = float(L)
+    else:
+        ai_new = ai_star
 
 
 
-
-
-
+    ai_new = float(ai_new)
     #########################################
     return ai_new
   
@@ -217,7 +235,7 @@ def update_aj(aj,ai,ai_new,yi,yj):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    
+    aj_new = float(aj + yi * yj * (ai - ai_new))
 
     #########################################
     return aj_new
@@ -246,14 +264,16 @@ def update_b(b,ai_new,aj_new,ai,aj,yi,yj,Ei,Ej,Kii,Kjj,Kij,C):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    
+    b1 = float(b - Ei - yj * (aj_new - aj) * Kij - yi * (ai_new - ai) * Kii )
+    b2 = float(b - Ej - yj * (aj_new - aj ) * Kjj - yi * (ai_new - ai) * Kij  )
 
-
-
-
-
-
-
+    if 0 < ai_new < C:
+        b = float(b1)
+        return b
+    if 0 < aj_new < C:
+        b = float(b2)
+        return b
+    b = float( (b1 + b2) / 2.0 )
     #########################################
     return b 
   
@@ -273,6 +293,7 @@ def train(K, y, C = 1., n_epoch = 10):
             b: the bias of the SVM model, a float scalar.
     '''
     n = K.shape[0]
+    #m = K.shape[1]
     a,b = np.asmatrix(np.zeros((n,1))), 0. 
     for _ in xrange(n_epoch):
         for i in xrange(n):
@@ -285,24 +306,33 @@ def train(K, y, C = 1., n_epoch = 10):
                 ## INSERT YOUR CODE HERE
 
                 # compute the bounds of ai (H, L)
-
+                H,L = compute_HL(ai, yi, aj, yj, C)
 
                 # if H==L, no change is needed, skip to next j
-
-
+                if (H - L) < 1e-4 or H == L:
+                    continue
                 # compute Ei and Ej
+                Ei, Ej = compute_E(K[i], a, y, b, i), compute_E(K[j], a, y, b, j)
 
 
-
-                # compute eta 
-
+                # compute eta
+                #print(j)
+                kii = K[i,i]
+                kjj = K[j,j]
+                kij = K[i,j]
+                eta = compute_eta(kii, kjj, kij)
 
                 # update ai, aj, and b
+                ai_new = update_ai(Ei, Ej, eta, ai, yi, H, L)
+                aj_new = update_aj(aj,ai,ai_new,yi,yj)
+                b = update_b(b,ai_new,aj_new,ai,aj,yi,yj,Ei,Ej,K[i,i],K[j,j],K[i,j],C)
 
+                a[i] = float(ai_new)
+                a[j] = float(aj_new)
 
-
-
+                #print(aj_new)
                 #########################################
+
     return a,b
 
 

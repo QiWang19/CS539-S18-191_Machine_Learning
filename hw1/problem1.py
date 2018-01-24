@@ -32,7 +32,7 @@ def compute_Phi(x,p):
         Phi = np.c_[Phi, t]
         count = count + 1
     np.mat(Phi)
-    print (Phi)
+    #print (Phi)
     #########################################
     return Phi
 
