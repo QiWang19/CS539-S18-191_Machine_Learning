@@ -103,8 +103,17 @@ def compute_L(a, y):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    L = -y * np.log(a) - (1 - y) * np.log(1 - a)
-    L = float(L)
+    L = 0.
+    if y == 1:
+        if a <= 0:
+            L = 1e6
+        else:
+            L = -math.log(a)
+    if y == 0:
+        if 1 - a <= 0:
+            L = 1e6
+        else:
+            L = -math.log(1 - a)
     #########################################
     return L
 

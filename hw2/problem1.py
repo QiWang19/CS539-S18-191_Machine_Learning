@@ -23,7 +23,14 @@ def compute_distance(Xtrain, Xtest):
     #########################################
     ## INSERT YOUR CODE HERE
 
+    n_train = Xtrain.shape[0]
+    p = Xtrain.shape[1]
+    n_test = Xtest.shape[0]
+    D = np.zeros((n_test, n_train))
 
+    for i in range(n_test):
+        for j in range(n_train):
+            D[i, j] = np.sqrt(np.sum(np.power(Xtest[i] - Xtrain[j], 2)))
 
 
 
@@ -50,7 +57,17 @@ def k_nearest_neighbor(Xtrain, Ytrain, Xtest, K = 3):
     #########################################
     ## INSERT YOUR CODE HERE
 
+    n_train, p = Xtrain.shape
+    n_test, p = Xtest.shape
+    y_train = np.array(Ytrain)
+    D = compute_distance(Xtrain, Xtest)
+    Ytest = np.zeros(n_test)
 
+    for i in range(n_test):
+        y_dist = D[i]
+        kNN = np.argsort(y_dist)[:K]
+        count = np.bincount(y_train[kNN])
+        Ytest[i] = np.argmax(count)
 
 
 
