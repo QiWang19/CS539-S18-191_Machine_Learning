@@ -1,6 +1,7 @@
 import math
 import numpy as np
-#-------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
 '''
     Problem 2: Logistic Regression 
     In this problem, you will implement the logistic regression method for binary classification problems.
@@ -41,12 +42,13 @@ import numpy as np
             n_epoch: the number of passes to go through the training dataset in the training process, an integer scalar.
 '''
 
-#-----------------------------------------------------------------
-# Forward Pass 
-#-----------------------------------------------------------------
 
-#--------------------------
-def compute_z(x,w,b):
+# -----------------------------------------------------------------
+# Forward Pass 
+# -----------------------------------------------------------------
+
+# --------------------------
+def compute_z(x, w, b):
     '''
         Compute the linear logit value of a data instance. z = <w, x> + b
         Here <w, x> represents the dot product of the two vectors.
@@ -60,12 +62,12 @@ def compute_z(x,w,b):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
     z = w.T * x + b
     #########################################
-    return z 
+    return z
 
-#--------------------------
+
+# --------------------------
 def compute_a(z):
     '''
         Compute the sigmoid activation.
@@ -76,22 +78,22 @@ def compute_a(z):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    try:
-        a = 1 / (1 + math.exp(-z))
-    except OverflowError:
-        if z > 0:
-            a = 1
-        else:
-            a = 0
+    if (z < -50):
+        z = -50
 
+    if (z > 50):
+        z = 50
 
+    a = 1. / (np.exp(-z) + 1.)
+    a = float(a)
     #########################################
     return a
 
-#--------------------------
-def compute_L(a,y):
+
+# --------------------------
+def compute_L(a, y):
     '''
-        Compute the loss function: the negative log likelihood, which is the negative logarithm of the likelihood. 
+        Compute the loss function: the negative log likelihood, which is the negative logarithm of the likelihood.
         This function is also called cross-entropy.
         Input:
             a: the activation of a training instance, a float scalar
@@ -101,27 +103,16 @@ def compute_L(a,y):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    L = 0.
-    if y == 1:
-        if a <= 0:
-            L = 1e6
-        else:
-            L = -math.log(a)
-    if y == 0:
-        if 1-a <= 0:
-            L = 1e6
-        else:
-            L = -math.log(1-a)
-
-
-
+    L = -y * np.log(a) - (1 - y) * np.log(1 - a)
+    L = float(L)
     #########################################
-    return L 
+    return L
 
-#--------------------------
-def forward(x,y,w,b):
+
+# --------------------------
+def forward(x, y, w, b):
     '''
-       Forward pass: given an instance in the training data, compute the logit z, activation a and cross entropy L on the instance. 
+       Forward pass: given an instance in the training data, compute the logit z, activation a and cross entropy L on the instance.
         Input:
             x: the feature vector of a training instance, a float numpy matrix of shape p by 1. Here p is the number of features/dimensions.
             y: the label of a training instance, an integer scalar value. The values can be 0 or 1.
@@ -130,27 +121,24 @@ def forward(x,y,w,b):
         Output:
             z: linear logit of the instance, a float scalar
             a: activation, a float scalar
-            L: the cross entropy loss on the training instance, a float scalar. 
+            L: the cross entropy loss on the training instance, a float scalar.
         Hint: you could solve this problem using 3 lines of code. Though using more lines of code is also okay.
     '''
     #########################################
     ## INSERT YOUR CODE HERE
     z = compute_z(x, w, b)
-
     a = compute_a(z)
-
-    L =  compute_L(a,z)
+    L = compute_L(a, y)
     #########################################
-    return z, a, L 
+    return z, a, L
 
 
-
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # Compute Local Gradients
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 
 
-#--------------------------
+# --------------------------
 def compute_dL_da(a, y):
     '''
         Compute local gradient of the cross-entropy function (the Loss function) L w.r.t. the activation a.
@@ -162,25 +150,20 @@ def compute_dL_da(a, y):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    dL_da = 0
-    if y == 0:
-        if a != 1:
-            dL_da = 1 / (1 - a)
-        else:
-            dL_da = 1e6
-    elif y == 1:
-        if a != 0:
-            dL_da = -1 / a
-        else:
-            dL_da = 0
+    if a == 1:
+        a = 0.99999
+    if a == 0:
+        a = 0.00001
 
-
+    if (y == 0):
+        dL_da = 1 / (1 - a)
+    else:
+        dL_da = -1 / a
     #########################################
-    return dL_da 
+    return dL_da
 
 
- 
-#--------------------------
+# --------------------------
 def compute_da_dz(a):
     '''
         Compute local gradient of the sigmoid activation a w.r.t. the logit z.
@@ -194,63 +177,59 @@ def compute_da_dz(a):
     #########################################
     ## INSERT YOUR CODE HERE
     da_dz = a * (1 - a)
-
-
     #########################################
-    return da_dz 
+    return da_dz
 
-#--------------------------
+
+# --------------------------
 def compute_dz_dw(x):
     '''
-        Compute partial gradients of the logit function z with respect to (w.r.t.) the weights w. 
+        Compute partial gradients of the logit function z with respect to (w.r.t.) the weights w.
         Input:
-            x: the feature vector of a data instance, a float numpy matrix of shape p by 1. 
+            x: the feature vector of a data instance, a float numpy matrix of shape p by 1.
                Here p is the number of features/dimensions.
         Output:
-            dz_dw: the partial gradients of the logit z with respect to the weights w, a numpy float matrix of shape p by 1. 
+            dz_dw: the partial gradients of the logit z with respect to the weights w, a numpy float matrix of shape p by 1.
                    The i-th element represents ( d_z / d_w[i])
-        Hint: you could solve this problem using 1 line of code. 
+        Hint: you could solve this problem using 1 line of code.
     '''
     #########################################
     ## INSERT YOUR CODE HERE
     dz_dw = x
-
     #########################################
     return dz_dw
 
 
-#--------------------------
+# --------------------------
 def compute_dz_db():
     '''
-        Compute partial gradient of the logit function z with respect to (w.r.t.) the bias b. 
+        Compute partial gradient of the logit function z with respect to (w.r.t.) the bias b.
         Output:
             dz_db: the partial gradient of logit z with respect to the bias b, a float scalar. It represents (d_z / d_b).
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
     dz_db = 1
-
     #########################################
     return dz_db
 
 
-#-----------------------------------------------------------------
-# Back Propagation 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
+# Back Propagation
+# -----------------------------------------------------------------
 
-#--------------------------
-def backward(x,y,a):
+# --------------------------
+def backward(x, y, a):
     '''
-       Back Propagation: given an instance in the training data, compute the local gradients for logit, activation, weights and bias on the instance. 
+       Back Propagation: given an instance in the training data, compute the local gradients for logit, activation, weights and bias on the instance.
         Input:
-            x: the feature vector of a data instance, a float numpy matrix of shape p by 1. 
+            x: the feature vector of a data instance, a float numpy matrix of shape p by 1.
             y: the label of a training instance, an integer scalar value. The values can be 0 or 1.
             a: the activation, a float scalar
         Output:
             dL_da: the local gradient of the loss function w.r.t. the activation, a float scalar value.
             da_dz: the local gradient of the activation a w.r.t. the logit z, a float scalar value. It represents ( d_a / d_z )
-            dz_dw: the partial gradient of logit z with respect to the weight vector, a numpy float matrix of shape (p by 1). 
+            dz_dw: the partial gradient of logit z with respect to the weight vector, a numpy float matrix of shape (p by 1).
                    The i-th element represents ( d_z / d_w[i])
             dz_db: the partial gradient of logit z with respect to the bias, a float scalar. It represents (d_z / d_b).
     '''
@@ -260,36 +239,31 @@ def backward(x,y,a):
     da_dz = compute_da_dz(a)
     dz_dw = compute_dz_dw(x)
     dz_db = compute_dz_db()
-
-
-
     #########################################
-    return dL_da, da_dz, dz_dw, dz_db 
+    return dL_da, da_dz, dz_dw, dz_db
 
 
-
-#--------------------------
+# --------------------------
 def compute_dL_dw(dL_da, da_dz, dz_dw):
     '''
        Given local gradients, compute the gradient of the loss function L w.r.t. the weights w.
         Input:
             dL_da: the local gradient of the loss function w.r.t. the activation, a float scalar value.
             da_dz: the local gradient of the activation a w.r.t. the logit z, a float scalar value. It represents ( d_a / d_z )
-            dz_dw: the partial gradient of logit z with respect to the weight vector, a numpy float matrix of shape (p by 1). 
+            dz_dw: the partial gradient of logit z with respect to the weight vector, a numpy float matrix of shape (p by 1).
                    The i-th element represents ( d_z / d_w[i])
         Output:
-            dL_dw: the gradient of the loss function w.r.t. the weight vector, a numpy float matrix of shape (p by 1). 
+            dL_dw: the gradient of the loss function w.r.t. the weight vector, a numpy float matrix of shape (p by 1).
         Hint: you could solve this problem using 1 lines of code
     '''
     #########################################
     ## INSERT YOUR CODE HERE
     dL_dw = dL_da * da_dz * dz_dw
-
     #########################################
     return dL_dw
 
 
-#--------------------------
+# --------------------------
 def compute_dL_db(dL_da, da_dz, dz_db):
     '''
        Given the local gradients, compute the gradient of the loss function L w.r.t. bias b.
@@ -298,66 +272,64 @@ def compute_dL_db(dL_da, da_dz, dz_db):
             da_dz: the local gradient of the activation a w.r.t. the logit z, a float scalar value. It represents ( d_a / d_z )
             dz_db: the partial gradient of logit z with respect to the bias, a float scalar. It represents (d_z / d_b).
         Output:
-            dL_db: the gradient of the loss function w.r.t. the bias, a float scalar. 
-        Hint: you could solve this problem using 1 lines of code 
+            dL_db: the gradient of the loss function w.r.t. the bias, a float scalar.
+        Hint: you could solve this problem using 1 lines of code
     '''
     #########################################
     ## INSERT YOUR CODE HERE
     dL_db = dL_da * da_dz * dz_db
-
     #########################################
-    return dL_db 
+    return dL_db
 
 
-#-----------------------------------------------------------------
-# gradient descent 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
+# gradient descent
+# -----------------------------------------------------------------
 
-#--------------------------
+# --------------------------
 def update_w(w, dL_dw, alpha=0.001):
     '''
        Given an instance in the training data, update the weights w using gradient descent.
         Input:
             w: the current value of the weight vector, a numpy float matrix of shape p by 1.
-            dL_dw: the gradient of the loss function w.r.t. the weight vector, a numpy float matrix of shape p by 1. 
+            dL_dw: the gradient of the loss function w.r.t. the weight vector, a numpy float matrix of shape p by 1.
             alpha: the step-size parameter of gradient descent, a float scalar.
         Output:
             w: the updated weight vector, a numpy float matrix of shape p by 1.
         Hint: you could solve this problem using 1 line of code
     '''
-    
+
     #########################################
     ## INSERT YOUR CODE HERE
     w = w - alpha * dL_dw
-    
     #########################################
     return w
 
-#--------------------------
+
+# --------------------------
 def update_b(b, dL_db, alpha=0.001):
     '''
        Given an instance in the training data, update the bias b using gradient descent.
         Input:
-            b: the current value of bias, a float scalar. 
-            dL_db: the gradient of the loss function w.r.t. the bias, a float scalar. 
+            b: the current value of bias, a float scalar.
+            dL_db: the gradient of the loss function w.r.t. the bias, a float scalar.
             alpha: the step-size parameter of gradient descent, a float scalar.
         Output:
-            b: the updated of bias, a float scalar. 
+            b: the updated of bias, a float scalar.
         Hint: you could solve this problem using 1 line of code in the block.
     '''
-    
+
     #########################################
     ## INSERT YOUR CODE HERE
     b = b - alpha * dL_db
-
     #########################################
-    return  b 
+    return b
 
 
-#--------------------------
+# --------------------------
 def train(X, Y, alpha=0.001, n_epoch=100):
     '''
-       Given a training dataset, train the logistic regression model by iteratively updating the weights w and bias b using the gradients computed over each data instance. 
+       Given a training dataset, train the logistic regression model by iteratively updating the weights w and bias b using the gradients computed over each data instance.
 We repeat n_epoch passes over all the training instances.
         Input:
             X: the feature matrix of training instances, a float numpy matrix of shape (n by p). Here n is the number of data instance in the training set, p is the number of features/dimensions.
@@ -366,27 +338,28 @@ We repeat n_epoch passes over all the training instances.
             n_epoch: the number of passes to go through the training set, an integer scalar.
         Output:
             w: the weight vector trained on the training set, a numpy float matrix of shape p by 1.
-            b: the bias, a float scalar. 
+            b: the bias, a float scalar.
     '''
 
     # initialize weights and biases as 0
     w, b = np.mat(np.zeros(X.shape[1])).T, 0.
 
     for _ in xrange(n_epoch):
-        for x,y in zip(X,Y):
-            x = x.T # convert to column vector
+        for x, y in zip(X, Y):
+            x = x.T  # convert to column vector
             #########################################
             ## INSERT YOUR CODE HERE
 
             # Forward pass: compute the logit, sigmoid activation and cross_entropy loss function.
             z, a, L = forward(x, y, w, b)
 
-            # Back propagation: compute local gradients 
+            # Back propagation: compute local gradients
             dL_da, da_dz, dz_dw, dz_db = backward(x, y, a)
 
-            # compute the global gradients using chain rule 
+            # compute the global gradients using chain rule
             dL_dw = compute_dL_dw(dL_da, da_dz, dz_dw)
             dL_db = compute_dL_db(dL_da, da_dz, dz_db)
+
             # update the parameters w and b
             w = update_w(w, dL_dw, alpha)
             b = update_b(b, dL_db, alpha)
@@ -395,8 +368,7 @@ We repeat n_epoch passes over all the training instances.
     return w, b
 
 
-
-#--------------------------
+# --------------------------
 def predict(Xtest, w, b):
     '''
        Predict the labels of the instances in a test dataset using logistic regression.
@@ -405,36 +377,38 @@ def predict(Xtest, w, b):
             w: the weight vector of the logistic model, a float numpy matrix of shape p by 1.
             b: the bias value of the logistic model, a float scalar.
         Output:
-            Y: the predicted labels of test data, an integer numpy array of length ntest. 
+            Y: the predicted labels of test data, an integer numpy array of length ntest.
                     If the predicted label is positive, the value is 1. If the label is negative, the value is 0.
-            P: the predicted probability of test data to have positive labels, a float numpy matrix of shape ntest by 1. 
-                    Each value is between 0 and 1, indicating the probability of the instance having the positive label. 
+            P: the predicted probability of test data to have positive labels, a float numpy matrix of shape ntest by 1.
+                    Each value is between 0 and 1, indicating the probability of the instance having the positive label.
             Note: If the activation is 0.5, we consider the prediction as positive (instead of negative).
     '''
     n = Xtest.shape[0]
-    Y = np.zeros(n) # initialize as all zeros
-    P = np.mat(np.zeros((n,1)))  
+    Y = np.zeros(n)  # initialize as all zeros
+    P = np.mat(np.zeros((n, 1)))
     for i, x in enumerate(Xtest):
-        x = x.T # convert to column vector
+        x = x.T  # convert to column vector
         #########################################
         ## INSERT YOUR CODE HERE
         z = compute_z(x, w, b)
         a = compute_a(z)
-        if a >= 0.5:
-            Y[i] = 1
-        else:
+        if z < 0:
             Y[i] = 0
-        P[i] = compute_L(a,Y[i])
+        else:
+            Y[i] = 1
+
+        P[i] = a
+
         #########################################
     return Y, P
 
 
-#-----------------------------------------------------------------
-# gradient checking 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
+# gradient checking
+# -----------------------------------------------------------------
 
 
-#--------------------------
+# --------------------------
 def check_dL_da(a, y, delta=1e-7):
     '''
         Compute local gradient of the cross-entropy function w.r.t. the activation using gradient checking.
@@ -445,12 +419,12 @@ def check_dL_da(a, y, delta=1e-7):
         Output:
             dL_da: the approximated local gradient of the loss function w.r.t. the activation, a float scalar value.
     '''
-    dL_da = (compute_L(a+delta,y) - compute_L(a,y)) / delta
-    return dL_da 
+    dL_da = (compute_L(a + delta, y) - compute_L(a, y)) / delta
+    return dL_da
 
 
-#--------------------------
-def check_da_dz(z, delta= 1e-7):
+# --------------------------
+def check_da_dz(z, delta=1e-7):
     '''
         Compute local gradient of the sigmoid function using gradient check.
         Input:
@@ -459,53 +433,53 @@ def check_da_dz(z, delta= 1e-7):
         Output:
             da_dz: the approximated local gradient of activation a w.r.t. the logit z, a float scalar value.
     '''
-    da_dz = (compute_a(z+delta) - compute_a(z)) / delta
-    return da_dz 
+    da_dz = (compute_a(z + delta) - compute_a(z)) / delta
+    return da_dz
 
 
-
-#--------------------------
-def check_dz_dw(x,w, b, delta=1e-7):
+# --------------------------
+def check_dz_dw(x, w, b, delta=1e-7):
     '''
         compute the partial gradients of the logit function z w.r.t. weights w using gradient checking.
         The idea is to add a small number to the weights and b separately, and approximate the true gradient using numerical gradient.
         Input:
             x: the feature vector of a data instance, a float numpy vector of length p. Here p is the number of features/dimensions.
-            w: the weight vector of the logistic model, a float numpy vector of length p. 
+            w: the weight vector of the logistic model, a float numpy vector of length p.
             b: the bias value of the logistic model, a float scalar.
             delta: a small number for gradient check, a float scalar.
         Output:
-            dz_dw: the approximated partial gradient of logit z w.r.t. the weight vector w computed using gradient check, a numpy float vector of length p. 
+            dz_dw: the approximated partial gradient of logit z w.r.t. the weight vector w computed using gradient check, a numpy float vector of length p.
     '''
-    p = x.shape[0] 
+    p = x.shape[0]
     dz_dw = np.mat(np.zeros(p)).T
     for i in xrange(p):
         d = np.mat(np.zeros(p)).T
         d[i] = delta
-        dz_dw[i] = (compute_z(x,w+d, b) - compute_z(x, w, b)) / delta
+        dz_dw[i] = (compute_z(x, w + d, b) - compute_z(x, w, b)) / delta
     return dz_dw
 
 
-#--------------------------
-def check_dz_db(x,w, b, delta=1e-7):
+# --------------------------
+def check_dz_db(x, w, b, delta=1e-7):
     '''
         compute the partial gradients of the logit function z w.r.t. the bias b using gradient checking.
         The idea is to add a small number to the weights and b separately, and approximate the true gradient using numerical gradient.
         For example, the true gradient of logit z w.r.t. bias can be approximated as  [z(w,b+ delta) - z(w,b)] / delta , here delta is a small number.
         Input:
             x: the feature vector of a data instance, a float numpy vector of length p. Here p is the number of features/dimensions.
-            w: the weight vector of the logistic model, a float numpy vector of length p. 
+            w: the weight vector of the logistic model, a float numpy vector of length p.
             b: the bias value of the logistic model, a float scalar.
             delta: a small number for gradient check, a float scalar.
         Output:
-            dz_dw: the approximated partial gradient of logit z w.r.t. the weight vector w computed using gradient check, a numpy float vector of length p. 
+            dz_dw: the approximated partial gradient of logit z w.r.t. the weight vector w computed using gradient check, a numpy float vector of length p.
             dz_db: the approximated partial gradient of logit z w.r.t. the bias b using gradient check, a float scalar.
     '''
-    dz_db = (compute_z(x, w, b+delta) - compute_z(x, w, b)) / delta
-    return  dz_db
+    dz_db = (compute_z(x, w, b + delta) - compute_z(x, w, b)) / delta
+    return dz_db
 
-#--------------------------
-def check_dL_dw(x,y,w,b, delta=1e-7):
+
+# --------------------------
+def check_dL_dw(x, y, w, b, delta=1e-7):
     '''
        Given an instance in the training data, compute the gradient of the weights w using gradient check.
         Input:
@@ -515,18 +489,19 @@ def check_dL_dw(x,y,w,b, delta=1e-7):
             b: the bias value, a float scalar.
             delta: a small number for gradient check, a float scalar.
         Output:
-            dL_dw: the approximated gradient of the loss function w.r.t. the weight vector, a numpy float vector of length p. 
+            dL_dw: the approximated gradient of the loss function w.r.t. the weight vector, a numpy float vector of length p.
     '''
-    p = x.shape[0] # number of features
+    p = x.shape[0]  # number of features
     dL_dw = np.mat(np.zeros(p)).T
     for i in xrange(p):
         d = np.mat(np.zeros(p)).T
         d[i] = delta
-        dL_dw[i] = (forward(x,y,w+d,b)[-1] - forward(x,y,w,b)[-1]) / delta
+        dL_dw[i] = (forward(x, y, w + d, b)[-1] - forward(x, y, w, b)[-1]) / delta
     return dL_dw
 
-#--------------------------
-def check_dL_db(x,y,w,b, delta=1e-7):
+
+# --------------------------
+def check_dL_db(x, y, w, b, delta=1e-7):
     '''
        Given an instance in the training data, compute the gradient of the bias b using gradient check.
         Input:
@@ -536,11 +511,10 @@ def check_dL_db(x,y,w,b, delta=1e-7):
             b: the bias value, a float scalar.
             delta: a small number for gradient check, a float scalar.
         Output:
-            dL_db: the approximated gradient of the loss function w.r.t. the bias, a float scalar. 
+            dL_db: the approximated gradient of the loss function w.r.t. the bias, a float scalar.
     '''
-    dL_db = (forward(x,y,w,b+delta)[-1] - forward(x,y,w,b)[-1]) / delta
+    dL_db = (forward(x, y, w, b + delta)[-1] - forward(x, y, w, b)[-1]) / delta
     return dL_db
-
 
 
 
