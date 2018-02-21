@@ -405,7 +405,7 @@ class AB(DS):
                 y: the class label, a scalar of int/float/string.
         '''
         #########################################
-        ## INSERT YOUR CODE HERE
+
 
         y_list = list()
         for t in T:
