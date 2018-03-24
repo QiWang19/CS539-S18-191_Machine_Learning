@@ -23,7 +23,7 @@ class Bandit:
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
+        self.p = p;
         #########################################
 
     # ----------------------------------------------
@@ -39,8 +39,11 @@ class Bandit:
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
-
+        import  random
+        ran = random.random()
+        r = 0
+        if ran < self.p[a]:
+            r = 1
         #########################################
         return r
 
@@ -66,6 +69,12 @@ class Agent:
         '''
         #########################################
         ## INSERT YOUR CODE HERE
+        self.n = n
+        self.e = e
+        q = np.zeros(n, dtype = float)
+        self.Q = q
+        c  = np.zeros(n, dtype=int)
+        self.c = c
 
 
         #########################################
@@ -82,9 +91,15 @@ class Agent:
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
-
-
+        import random
+        ran = random.random()
+        a = 0
+        if ran < self.e:
+            a = random.randint(0, self.n - 1)
+        elif ran > self.e:
+            a = np.argmax(self.Q)
+        elif ran == self.e:
+            a = np.argmin(self.Q)
         #########################################
         return a
 
@@ -102,8 +117,8 @@ class Agent:
         #########################################
         ## INSERT YOUR CODE HERE
 
-
-
+        self.c[a] = self.c[a] + 1
+        self.Q[a] = self.Q[a] + (float(1) / self.c[a]) * (r - self.Q[a])
         #########################################
 
 
@@ -120,9 +135,10 @@ class Agent:
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
-
-
+        for i in range(0, n_steps):
+            a = self.forward()
+            r = g.step(a)
+            self.update(a, r)
 
         #########################################
 
