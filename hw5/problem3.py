@@ -42,7 +42,9 @@ class QLearner(Agent):
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
+        self.n = n
+        self.e = e
+        self.Q = np.zeros(n_s, n)
 
         #########################################
 

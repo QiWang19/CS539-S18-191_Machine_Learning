@@ -29,8 +29,10 @@ class CBandit:
         #########################################
         ## INSERT YOUR CODE HERE
 
-
-
+        self.p = p
+        m,n = self.p.shape
+        self.n_s = m
+        self.s = int(0)
         #########################################
 
     # ----------------------------------------------
@@ -48,9 +50,13 @@ class CBandit:
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
-
-
+        import random
+        ran = random.random()
+        r = 0.
+        if ran < self.p[self.s, a]:
+            r = 1.
+        s = int(r)
+        self.s = s
         #########################################
         return r, s
 
@@ -78,8 +84,10 @@ class Agent(object):
         #########################################
         ## INSERT YOUR CODE HERE
 
-
-
+        self.n = n
+        self.e = e
+        self.Q = np.zeros((n_s, n))
+        self.c = np.zeros((n_s, n))
         #########################################
 
    # ----------------------------------------------
@@ -93,8 +101,15 @@ class Agent(object):
         '''
         #########################################
         ## INSERT YOUR CODE HERE
-
-
+        import random
+        ran = random.random()
+        a = 0
+        if ran < self.e:
+            a = random.randint(0, self.n - 1)
+        elif ran > self.e:
+            a = np.argmax(self.Q[s,:])
+        elif ran == self.e:
+            a = np.argmin(self.Q[s, :])
 
 
         #########################################
@@ -114,9 +129,9 @@ class Agent(object):
         '''
         #########################################
         ## INSERT YOUR CODE HERE
+        self.c[s, a] = self.c[s,a] + 1
 
-
-
+        self.Q[s,a] = self.Q[s,a] + (float(1) / self.c[s,a]) * (r - self.Q[s,a])
 
         #########################################
 
@@ -135,10 +150,11 @@ class Agent(object):
         s = g.s # initial state of the game
         #########################################
         ## INSERT YOUR CODE HERE
-
-
-
-
+        for i in range(0, n_steps):
+            a = self.forward(s)
+            r,s_new = g.step(a)
+            self.update(s,a,r)
+            s = s_new
 
 
         #########################################
