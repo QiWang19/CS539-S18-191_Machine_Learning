@@ -32,10 +32,13 @@ def forward_prob(Ev,I,T,Em):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-     
+    arr = I * Em[:,Ev[0]]
+    for i in range(1, len(Ev)):
+        temp = arr.reshape(-1,1) * T
 
-
-
+        arr = np.sum(temp, axis = 0) * Em[:,Ev[i]]
+    X = np.argmax(arr)
+    a = arr
 
 
     #########################################
@@ -62,11 +65,15 @@ def backward_prob(Ev,T,Em):
     #########################################
     ## INSERT YOUR CODE HERE
      
-
-
-
-
-
+    m, n = T.shape
+    arri = np.ones((1, m))
+    idx = len(Ev) - 1
+    while idx > 0:
+        arrm = (T * Em[:,Ev[idx]]) * arri
+        arri = np.sum(arrm, axis = 1)
+        idx -= 1
+    b = arri
+    X = np.argmax(arri)
 
     #########################################
     return X, b
@@ -99,11 +106,12 @@ def forward_backward_prob(Ev,I,T,Em,i):
     #########################################
     ## INSERT YOUR CODE HERE
 
-
-
-
-
-
+    aa = forward_prob(Ev[0:i + 1], I, T, Em)[1]
+    XX1, bb = backward_prob(Ev[i:], T, Em)
+    X = np.argmax(aa * bb)
+    a = aa
+    b = bb
+    p = aa * bb
     #########################################
     return X, p, a, b
 
@@ -113,34 +121,21 @@ def most_probable_pass(Ev,I,T,Em):
     '''
         Given a HMM and a sequence of evidence, compute the most probable path of the hidden states using Viterbi Algorithm.
         Input:
-            Ev: the observed evidence sequence, an integer numpy vector of length n. 
-                Here n is the number of time steps. Each X[i] = 0,1, ..., or p-1. 
+            Ev: the observed evidence sequence, an integer numpy vector of length length.
+                Here length is the number of time steps. Each X[i] = 0,1, ..., or p-1.
                 p is the number of possible values of the evidence variable, an integer scalar.
-            I : the initial probability distribution of the hidden variable, a float vector of length c. 
-                c is the number of possible values of the hidden variable, an integer scalar.
-            T : the transition probablity of the hidden variable, a float numpy matrix of shape c by c
+            I : the initial probability distribution of the hidden variable, a float vector of length col.
+                col is the number of possible values of the hidden variable, an integer scalar.
+            T : the transition probablity of the hidden variable, a float numpy matrix of shape col by col
                 T[i,j] represents the probability of P(Xt = j | Xt-1 = i).
-            Em: the emission probability of the evidence variable, a float numpy matrix of shape c by p.
+            Em: the emission probability of the evidence variable, a float numpy matrix of shape col by p.
                 Em[i,j] represents the probability of P(Et = j | Xt = i)
         Output:
-            X: the hidden state trajectory with maximum joint probability, an integer vector of length n.
+            X: the hidden state trajectory with maximum joint probability, an integer vector of length length.
                 X[i] represents the hidden state value of the i-th step in the most probable path.
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -155,28 +150,35 @@ def compute_gamma(Ev,I,T,Em):
     '''
         Given a HMM and a sequence of evidence, estimate the parameter of HMM with the highest likelihood of observing the sequence using EM (Baum-Welch) Algorithm. Compute the gamma values for the E-step of EM algorithm.
         Input:
-            Ev: the observed evidence sequence, an integer numpy vector of length n. 
-                Here n is the number of time steps. Each X[i] = 0,1, ..., or p-1. 
-            I : the current estimation of initial probability, a float vector of length c. 
-            T : the current estimation of transition probablity, a float numpy matrix of shape c by c
+            Ev: the observed evidence sequence, an integer numpy vector of length length. 
+                Here length is the number of time steps. Each X[i] = 0,1, ..., or p-1. 
+            I : the current estimation of initial probability, a float vector of length col.
+            T : the current estimation of transition probablity, a float numpy matrix of shape col by col
                 T[i,j] represents the probability of P(Xt = j | Xt-1 = i).
-            Em: the current estimation of emission probability, a float numpy matrix of shape c by p.
+            Em: the current estimation of emission probability, a float numpy matrix of shape col by p.
                 Em[i,j] represents the probability of P(Et = j | Xt = i)
         Output:
-            gamma: the gamma probability, a numpy matrix of shape n by c
+            gamma: the gamma probability, a numpy matrix of shape length by col
                     gamma[t,i] denotes P(X_t =  i | Ev, HMM_parameters)
-            alpha: the alpha probabilities at each time step, a numpy matrix of shape n by c
+            alpha: the alpha probabilities at each time step, a numpy matrix of shape length by col
                     alpha[t] denotes the forward probability at time step t.
-            beta: the beta probabilities at each time step, a numpy matrix of shape n by c
+            beta: the beta probabilities at each time step, a numpy matrix of shape length by col
                     beta[t] denotes the backward probability at time step t.
     '''
     #########################################
     ## INSERT YOUR CODE HERE
 
+    length = len(Ev)
 
+    col, row = T.shape
 
+    gamma = np.zeros((length, col))
+    alpha = np.zeros((length, col))
+    beta = np.zeros((length, col))
 
-
+    for i in range(0, length):
+        temp, p, alpha[i, :], beta[i, :] = forward_backward_prob(Ev, I, T, Em, i)
+        gamma[i, :] = p / np.sum(p)
 
 
 
@@ -214,13 +216,13 @@ def compute_xi(Ev,T,Em,alpha,beta):
     #########################################
     ## INSERT YOUR CODE HERE
 
+    xi = np.zeros((len(Ev) - 1, T.shape[0], T.shape[0]))
+    row, col = T.shape
+    for i in range(0, len(Ev) - 1):
+        xi[i, :, :] =( (alpha[i,:].reshape(-1, 1) * T) * Em[:,Ev[i + 1]]) * beta[i + 1, :]
+        temp = np.sum(xi[i, :, :])
 
-
-
-
-
-
-
+        xi[i, :, :] = xi[i, :, :] / temp
 
 
     #########################################
@@ -249,9 +251,8 @@ def E_step(Ev,I,T,Em):
     #########################################
     ## INSERT YOUR CODE HERE
 
-
-
-
+    gamma, alpha, beta = compute_gamma(Ev, I, T, Em)
+    xi = compute_xi(Ev, T, Em, alpha, beta)
 
     #########################################
     return gamma, xi
@@ -271,7 +272,7 @@ def update_I(gamma):
     #########################################
     ## INSERT YOUR CODE HERE
 
-
+    I = gamma[0]
 
     #########################################
     return I
@@ -296,7 +297,7 @@ def update_T(gamma,xi):
     ## INSERT YOUR CODE HERE
 
 
-
+    T = np.divide(np.sum(xi, axis=0), (np.sum(gamma, axis=0) - gamma[-1, :]).reshape(-1, 1))
 
 
 
@@ -319,10 +320,12 @@ def update_Em(Ev,gamma,p):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-   
+    m, n = gamma.shape
+    Em = np.zeros((n, p))
 
-
-
+    for i in range(0, m):
+        Em[:, Ev[i]] += gamma[i, :]
+    Em = np.divide(Em, np.sum(gamma, axis=0).reshape(-1, 1))
 
 
     #########################################
@@ -352,11 +355,11 @@ def M_step(Ev, gamma,xi,p):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
+    Em = update_Em(Ev, gamma, p)
 
 
-
-
-
+    I = update_I(gamma)
+    T = update_T(gamma, xi)
 
     #########################################
     return I, T, Em 

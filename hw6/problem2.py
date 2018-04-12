@@ -20,24 +20,25 @@ def compute_S(A):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-    arr = [[0 for i in range(len(A))] for r in range(len(A)) ]
-    cnt = [0 for i in range(len(A)) ]
-    for i in range(len(A)):
-        for j in range(len(A)):
-            if A[j,i] == 1:
-                cnt[i] = cnt[i] + 1
-
-
-    for i in range(len(A)):
-        for j in range(len(A)):
-            if cnt[i] == 0:
-                arr[j][i] = 1. / len(A)
-            elif cnt[i] != 0:
-                arr[j][i] = A[j,i] / cnt[i]
-
-    S = np.mat(arr)
-
-
+    # arr = [[0 for i in range(len(A))] for r in range(len(A)) ]
+    # cnt = [0 for i in range(len(A)) ]
+    # for i in range(len(A)):
+    #     for j in range(len(A)):
+    #         if A[j,i] == 1:
+    #             cnt[i] = cnt[i] + 1
+    #
+    #
+    # for i in range(len(A)):
+    #     for j in range(len(A)):
+    #         if cnt[i] == 0:
+    #             arr[j][i] = 1. / len(A)
+    #         elif cnt[i] != 0:
+    #             arr[j][i] = A[j,i] / cnt[i]
+    #
+    # S = np.mat(arr)
+    m, n = A.shape
+    S = np.divide(A , np.sum(A, 0))
+    S[np.isnan(S)] = float(1) / n
     #########################################
     return S
 
@@ -110,26 +111,6 @@ def random_walk(G, x_0, max_steps=10000):
     #########################################
     ## INSERT YOUR CODE HERE
 
-    # n_steps = 0
-    # for i in range(max_steps):
-    #
-    #     # print prev_step
-    #     if n_steps == 0:
-    #         x = random_walk_one_step(G, x_0)
-    #         prev_step = x_0
-    #         if np.allclose(prev_step, x):
-    #             # print n_steps
-    #             n_steps += 1
-    #             return x, n_steps
-    #     else:
-    #         prev_step = x
-    #         x = random_walk_one_step(G, x)
-    #     # print x
-    #     n_steps += 1
-    #     if np.allclose(prev_step, x):
-    #         # print n_steps
-    #         print n_steps
-    #         return x, n_steps
 
     x = x_0
     nextx = x_0

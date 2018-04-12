@@ -124,9 +124,11 @@ def train(X,Y,k=1):
     '''
     #########################################
     ## INSERT YOUR CODE HERE
-
-
-
+    p, n = X.shape
+    PX_Y = np.zeros((p, 2, 2))
+    for i in range(0, p):
+        PX_Y[i, :, :] = conditional_prob(X[i, :], Y, k)
+    PY = class_prior(Y)
 
 
     #########################################
@@ -153,9 +155,14 @@ def inference(X,PY, PX_Y):
     #########################################
     ## INSERT YOUR CODE HERE
 
+    i = 0
+    temp = PY
+    while i < X.shape[0] :
+        temp = temp * PX_Y[i, :, X[i]]
+        i+=1
 
-
-
+    P = temp / sum(temp)
+    Y = np.argmax(temp)
     #########################################
     return Y, P
 
@@ -180,9 +187,11 @@ def predict(X,PY, PX_Y):
     #########################################
     ## INSERT YOUR CODE HERE
 
+    m, n = X.shape
+    Y = np.zeros(n)
+    for i in range(0, n):
 
-
-
+        Y[i] = inference(X[:, i], PY, PX_Y)[0]
 
 
     #########################################
